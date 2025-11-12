@@ -69,4 +69,4 @@ byte[] jpgBytes = captureTexture.EncodeToJPG();
 ```
 
 ### Example Workflow
-Unity RenderTexture (GPU) → AsyncGPUReadback/Direct GPU Encode → GPU VideoEncoder (H.264/H.265) → TCP/UDP/RTP/RTCP Stream → Python GPU Decode Client
+Unity RenderTexture → AsyncGPUReadback → VideoEncoder (H.264/H.265) → TCP/UDP/RTP/RTCP Stream → Python Client (Receive + Decode)
