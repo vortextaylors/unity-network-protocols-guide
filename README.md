@@ -32,3 +32,41 @@ Asynchronous (async/await)
 - Prevent frame drop, stutter, and unresponsive UI.
 - Essential for smooth, high-FPS camera streaming, VR/AR, or multi-client networking.
 - Scale easily for multiple connections or tasks without blocking rendering.
+
+### Encoding/Decoding Approach
+For high-resolution and high-FPS streaming, encoding each frame as a raw JPEG is CPU intensive and inefficient. Instead, consider using Unity’s `VideoEncoder` (H.264/H.265) or library like `FFmpeg` to compress the frame then send the compressed video stream over TCP/UDP. This approach reduces CPU load and network bandwidth, while maintaining smoother real-time streaming.
+
+```csharp
+// the code is inefficient example
+// cpu heavy for high resolution and high fps
+byte[] jpgBytes = captureTexture.EncodeToJPG(jpgQuality);
+```
+
+### GPU Optimization
+Use `AsyncGPUReadback` to read the `RenderTexture` from GPU without blocking the main thread.
+```csharp
+using UnityEngine.Rendering;
+
+AsyncGPUReadback.Request(renderTexture, 0, TextureFormat.RGB24, OnCompleteReadback);
+
+void OnCompleteReadback(AsyncGPUReadbackRequest request)
+{
+    if (request.hasError) {
+        return
+    };
+
+    var data = request.GetData<byte>().ToArray();
+
+    // send data over TCP
+}
+```
+
+```csharp
+// the code is inefficient example
+captureTexture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height));
+captureTexture.Apply();
+byte[] jpgBytes = captureTexture.EncodeToJPG();
+```
+
+### Example Workflow
+Unity RenderTexture → AsyncGPUReadback → VideoEncoder (H.264/H.265) → TCP/UDP Network → Python Client (Receive & Decode)
